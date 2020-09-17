@@ -1,4 +1,4 @@
-namespace CommandDistpaching
+namespace DomainDispatching.Commanding
 {
     public interface ICommandHandler<TCommand> where TCommand : Command
     {
