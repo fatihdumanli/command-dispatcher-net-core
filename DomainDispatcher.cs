@@ -38,16 +38,17 @@ namespace DomainDispatching
             }
         }
     
-        public void PublishDomainEvent<TDomainEvent>(TDomainEvent @event) where TDomainEvent : IDomainEvent
+        public void PublishDomainEvent(IDomainEvent @event)
         {
             using(var currentScope = _scope.BeginLifetimeScope())
             {
                 try
                 {
                     _logger.LogInformation(string.Format(" [x] DomainDispatcher.PublishDomainEvent(): Publishing the domain event: {0}", @event.GetType().Name));
-                    var domainEventHandler = currentScope.Resolve<IDomainEventHandler<TDomainEvent>>();
+                    var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(@event.GetType());
+                    var domainEventHandler = currentScope.Resolve(typeof(IDomainEventHandler<>).MakeGenericType(@event.GetType()));
                     _logger.LogInformation(string.Format(" [x] DomainDispatcher.PublishDomainEvent(): Resolved an instance of {0}", domainEventHandler.GetType().Name));
-                    domainEventHandler.Handle(@event);
+                    handlerType.GetMethod("Handle").Invoke(domainEventHandler, new object[] { @event });
                 }
 
                 catch(Exception ex)

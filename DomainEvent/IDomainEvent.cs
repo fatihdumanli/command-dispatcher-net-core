@@ -1,3 +1,5 @@
+using System;
+
 namespace DomainDispatching.DomainEvent
 {
     //Marker interface
