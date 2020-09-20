@@ -18,16 +18,17 @@ namespace DomainDispatching
            _logger.LogInformation(" [x] DomainDispatcher: Creating an instance of DomainDispatcher.");
         }
 
-        public void DispatchCommand<TCommand>(TCommand command) where TCommand: Command
+        public void DispatchCommand(Command command)
         {
             using(var currentScope = _scope.BeginLifetimeScope())
             {
                 try
                 {
                     _logger.LogInformation(string.Format(" [x] DomainDispatcher.DispatchCommand(): Dispatching the command {0}", command.GetType().Name));
-                    var handler = currentScope.Resolve<ICommandHandler<TCommand>>();
-                    _logger.LogInformation(string.Format(" [x] DomainDispatcher.DispatchCommand(): Resolved an instance of {0}", handler.GetType().Name));
-                    handler.Handle(command);
+                    var commandHandlerType = typeof(ICommandHandler<>).MakeGenericType(command.GetType());
+                    var commandHandler = currentScope.Resolve(commandHandlerType);
+                    _logger.LogInformation(string.Format(" [x] DomainDispatcher.DispatchCommand(): Resolved an instance of {0}", commandHandler.GetType().Name));
+                    commandHandlerType.GetMethod("Handle").Invoke(commandHandler, new object[] { command });
                 } 
                 
                 catch(Exception ex)
